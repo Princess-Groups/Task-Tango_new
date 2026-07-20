@@ -31,6 +31,9 @@ export function NotificationBell() {
 
   useEffect(() => {
     if (!user || !isAdmin) return;
+    const topic = `realtime:notifications:${user.id}`;
+    const existing = supabase.getChannels().find((c) => c.topic === topic);
+    if (existing) supabase.removeChannel(existing);
     const ch = supabase
       .channel("notifications:" + user.id)
       .on(
