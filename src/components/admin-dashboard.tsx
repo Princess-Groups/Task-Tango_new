@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { PageHeader, PageShell, StatCard } from "./page-shell";
-import { Users, Briefcase, ListChecks, CheckCircle2, AlertTriangle, Wallet, TrendingUp, Clock } from "lucide-react";
+import { Users, Briefcase, ListChecks, CheckCircle2, AlertTriangle, Wallet, TrendingUp, Clock, Timer, CalendarClock } from "lucide-react";
 import {
   Bar,
   BarChart,
@@ -19,6 +19,7 @@ import {
 } from "recharts";
 import { format, startOfMonth, subDays, eachDayOfInterval } from "date-fns";
 import { GettingStarted } from "./getting-started";
+import { Progress } from "@/components/ui/progress";
 
 export function AdminDashboard() {
   const today = format(new Date(), "yyyy-MM-dd");
@@ -29,21 +30,33 @@ export function AdminDashboard() {
     queryFn: async () => {
       const [
         emps,
-        clients,
-        tasksAll,
+        clientsActive,
+        clientsTotal,
+        tasksTotal,
+        tasksPending,
+        tasksOverdue,
         tasksDoneToday,
+        tasksAssignedToday,
         tasksDoneMonth,
         attToday,
+        lateToday,
+        lateMonth,
         payPending,
         payOverdue,
         revenueMonth,
       ] = await Promise.all([
         supabase.from("profiles").select("id", { count: "exact", head: true }).eq("is_active", true),
         supabase.from("clients").select("id", { count: "exact", head: true }).eq("is_archived", false),
+        supabase.from("clients").select("id", { count: "exact", head: true }),
+        supabase.from("tasks").select("id", { count: "exact", head: true }),
         supabase.from("tasks").select("id", { count: "exact", head: true }).neq("status", "completed"),
+        supabase.from("tasks").select("id", { count: "exact", head: true }).neq("status", "completed").lt("due_date", today),
         supabase.from("tasks").select("id", { count: "exact", head: true }).eq("status", "completed").gte("completed_at", `${today}T00:00:00`),
+        supabase.from("tasks").select("id", { count: "exact", head: true }).gte("created_at", `${today}T00:00:00`),
         supabase.from("tasks").select("id", { count: "exact", head: true }).eq("status", "completed").gte("completed_at", `${monthStart}T00:00:00`),
         supabase.from("attendance").select("id", { count: "exact", head: true }).eq("work_date", today),
+        supabase.from("attendance").select("id", { count: "exact", head: true }).eq("work_date", today).eq("is_late", true),
+        supabase.from("attendance").select("id", { count: "exact", head: true }).gte("work_date", monthStart).eq("is_late", true),
         supabase.from("payments").select("id", { count: "exact", head: true }).eq("status", "pending"),
         supabase.from("payments").select("id", { count: "exact", head: true }).eq("status", "overdue"),
         supabase.from("payments").select("amount_paid").gte("updated_at", `${monthStart}T00:00:00`),
@@ -56,11 +69,17 @@ export function AdminDashboard() {
 
       return {
         employees: emps.count ?? 0,
-        clients: clients.count ?? 0,
-        pendingTasks: tasksAll.count ?? 0,
+        clientsActive: clientsActive.count ?? 0,
+        clientsTotal: clientsTotal.count ?? 0,
+        tasksTotal: tasksTotal.count ?? 0,
+        pendingTasks: tasksPending.count ?? 0,
+        overdueTasks: tasksOverdue.count ?? 0,
         doneToday: tasksDoneToday.count ?? 0,
+        assignedToday: tasksAssignedToday.count ?? 0,
         doneMonth: tasksDoneMonth.count ?? 0,
         activeToday: attToday.count ?? 0,
+        lateToday: lateToday.count ?? 0,
+        lateMonth: lateMonth.count ?? 0,
         payPending: payPending.count ?? 0,
         payOverdue: payOverdue.count ?? 0,
         revenue,
@@ -118,10 +137,17 @@ export function AdminDashboard() {
         .gte("created_at", `${monthStart}T00:00:00`);
       return (profiles ?? []).map((p) => {
         const mine = (tasks ?? []).filter((t) => t.assigned_to === p.id);
+        const completed = mine.filter((t) => t.status === "completed").length;
+        const pending = mine.filter((t) => t.status !== "completed").length;
+        const total = mine.length;
         return {
+          id: p.id,
+          fullName: p.full_name,
           name: p.full_name.split(" ")[0],
-          completed: mine.filter((t) => t.status === "completed").length,
-          pending: mine.filter((t) => t.status !== "completed").length,
+          completed,
+          pending,
+          total,
+          rate: total ? Math.round((completed / total) * 100) : 0,
         };
       });
     },
@@ -136,16 +162,45 @@ export function AdminDashboard() {
 
       <GettingStarted />
 
-
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
         <StatCard label="Total Employees" value={stats?.employees ?? "—"} icon={<Users className="h-5 w-5" />} accent="primary" />
         <StatCard label="Active Today" value={stats?.activeToday ?? "—"} icon={<Clock className="h-5 w-5" />} accent="accent" hint="Clocked in" />
-        <StatCard label="Total Clients" value={stats?.clients ?? "—"} icon={<Briefcase className="h-5 w-5" />} accent="primary" />
-        <StatCard label="Pending Tasks" value={stats?.pendingTasks ?? "—"} icon={<ListChecks className="h-5 w-5" />} accent="warning" />
+        <StatCard label="Active Clients" value={stats?.clientsActive ?? "—"} icon={<Briefcase className="h-5 w-5" />} accent="primary" hint={`${stats?.clientsTotal ?? 0} total`} />
+        <StatCard label="Total Tasks" value={stats?.tasksTotal ?? "—"} icon={<ListChecks className="h-5 w-5" />} accent="primary" />
+        <StatCard label="Pending Tasks" value={stats?.pendingTasks ?? "—"} icon={<Timer className="h-5 w-5" />} accent="warning" />
+        <StatCard label="Overdue Tasks" value={stats?.overdueTasks ?? "—"} icon={<AlertTriangle className="h-5 w-5" />} accent="destructive" />
+        <StatCard label="Assigned Today" value={stats?.assignedToday ?? "—"} icon={<CalendarClock className="h-5 w-5" />} accent="accent" />
         <StatCard label="Completed Today" value={stats?.doneToday ?? "—"} icon={<CheckCircle2 className="h-5 w-5" />} accent="success" />
         <StatCard label="Completed This Month" value={stats?.doneMonth ?? "—"} icon={<CheckCircle2 className="h-5 w-5" />} accent="success" />
-        <StatCard label="Overdue Payments" value={stats?.payOverdue ?? "—"} icon={<AlertTriangle className="h-5 w-5" />} accent="destructive" hint={`${stats?.payPending ?? 0} pending`} />
-        <StatCard label="Revenue (MTD)" value={`₹${(stats?.revenue ?? 0).toLocaleString("en-IN")}`} icon={<Wallet className="h-5 w-5" />} accent="primary" />
+        <StatCard label="Late Today" value={stats?.lateToday ?? "—"} icon={<AlertTriangle className="h-5 w-5" />} accent="warning" />
+        <StatCard label="Late This Month" value={stats?.lateMonth ?? "—"} icon={<AlertTriangle className="h-5 w-5" />} accent="warning" />
+        <StatCard label="Revenue (MTD)" value={`₹${(stats?.revenue ?? 0).toLocaleString("en-IN")}`} icon={<Wallet className="h-5 w-5" />} accent="primary" hint={`${stats?.payOverdue ?? 0} overdue · ${stats?.payPending ?? 0} pending`} />
+      </div>
+
+      {/* Employee progress bars */}
+      <div className="card-soft p-5 mt-6">
+        <h3 className="font-display font-semibold mb-4">Employee task progress · this month</h3>
+        {(performance ?? []).length === 0 ? (
+          <p className="text-sm text-muted-foreground">No employee task data yet.</p>
+        ) : (
+          <div className="space-y-4">
+            {(performance ?? []).map((p) => (
+              <div key={p.id}>
+                <div className="flex items-center justify-between text-sm mb-1.5">
+                  <span className="font-medium">{p.fullName}</span>
+                  <span className="text-xs text-muted-foreground">
+                    {p.completed}/{p.total} · {p.rate}%
+                  </span>
+                </div>
+                <Progress value={p.rate} className="h-2" />
+                <div className="flex gap-3 mt-1 text-xs text-muted-foreground">
+                  <span>✓ {p.completed} done</span>
+                  <span>⏳ {p.pending} pending</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
 
       <div className="grid lg:grid-cols-3 gap-4 mt-6">

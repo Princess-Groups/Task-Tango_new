@@ -1,59 +1,43 @@
-# Foundations rollout
+# Software Improvements Plan
 
-Scope = items 1 (late-login flag only, report comes in phase 2), 2 (task categories), 3 (edit everywhere), 4 (pending carry-over) + the "notify admin each morning for tasks pending >1 day" hook. Reports, dashboard revamp, filters, exports come in follow-up rollouts.
+Big scope — I'll ship it in **two phases** so you can review as we go. Phase 1 fixes the critical Save-button bug and adds the Reports foundation. Phase 2 layers on charts, more exports, and table polish.
 
-## 1. Database migration
+## Phase 1 — Critical fixes + Reports foundation
 
-- Add enum `public.task_category`: `video_editing`, `graphic_designing`, `meta_ads`, `google_ads`, `website_development`, `logo_design`, `other`.
-- `tasks`: add `category task_category not null default 'other'`, `category_other text` (free text when category = other), `original_due_date date` (set from `due_date` on insert if null; used to show "Assigned on …" when carried over).
-- `attendance`: add generated columns
-  - `is_late boolean` — true when `login_time::time > '09:30'`.
-  - `late_minutes int` — `greatest(0, extract(epoch from (login_time::time - '09:30'))/60)::int`, null when no login.
-  Use a trigger (not generated cols) so we can also recompute on update and keep it simple.
-- New table `public.notifications` (admin bell): `id, recipient_id (uuid → auth.users), type text, title text, body text, link text, is_read bool default false, created_at`. RLS: recipient can select/update own; service_role all. GRANT authenticated select/update; service_role all.
-- `attendance_guard` trigger update: set `is_late` / `late_minutes` on insert & update.
+### 1. Scrollable dialogs (fixes Save button bug)
+Root cause: shadcn `DialogContent` isn't scrollable by default, so tall forms (New Task, New Client, New Employee, Payment, Attendance edit) push the footer off small screens.
 
-## 2. Server pieces
+Fix once, applies everywhere:
+- Update every dialog to: `max-h-[90vh]` shell, scrollable body (`overflow-y-auto flex-1`), **sticky footer** with Save/Cancel always visible.
+- Files touched: `tasks`, `clients`, `employees`, `payments`, `attendance` route dialogs.
 
-- New public cron route `src/routes/api/public/hooks/pending-task-digest.ts`
-  - Runs each morning, finds tasks where `status != 'completed'` and `original_due_date < today`, groups by admin, inserts one summary notification per admin ("N tasks pending — oldest from …") plus per-task rows if <=10.
-- Schedule with `pg_cron` (insert tool) at `30 3 * * *` UTC (~09:00 IST).
+### 2. Reports page (`/reports`, admin only)
+New route with 4 tabs:
+- **Employee report** — per employee: clients assigned, tasks assigned/completed/pending, productivity %
+- **Client report** — per client: assigned employee, tasks total/completed/pending, last updated
+- **Daily report** — today's task summary + employee performance
+- **Monthly report** — month-to-date completion, pending, per-employee breakdown
 
-## 3. Frontend — Tasks
+Filters (top of page): date range, employee, client, status.
+Every tab has an **Export to Excel (.xlsx)** button using `xlsx` (SheetJS) — client-side, no server work needed.
 
-- `_authenticated.tasks.tsx` (admin):
-  - Add **Category** select in create dialog with the 7 options + conditional text input for "Other".
-  - Add **Edit** button on each task row → same dialog prefilled, mutation calls update.
-  - Show category badge in list.
-- `_authenticated.my-tasks.tsx` & `_authenticated.my-targets.tsx` (employee):
-  - Show category badge.
-  - Include tasks where `original_due_date <= today AND status != 'completed'` (carry-over). Show "Assigned on {original_due_date}" chip when it's before today.
-  - When employee marks complete, clear any pending badge automatically (status flip already does it).
+### 3. Admin dashboard revamp
+Rebuild `admin-dashboard.tsx` widget grid to show:
+Total Employees · Total Clients · Active Clients · Total Tasks · Completed · Pending · Overdue · Today Assigned · Today Completed · Late Today · Late This Month.
+Add employee-wise progress bars (tasks completed / assigned with % + color).
 
-## 4. Frontend — Edit for other modules
+## Phase 2 (after you approve Phase 1)
+- Charts: task completion trend, daily/monthly status, client distribution, pending vs completed (Recharts).
+- Table upgrades on Tasks/Clients/Employees/Payments: search box, column sort, pagination (10/25/50), sticky headers, horizontal scroll on mobile.
+- Extra exports: pending-task report, client-assignment report, dashboard summary.
 
-- Employees page: add Edit dialog (name, email, is_active, role).
-- Clients page: Edit dialog (all existing fields).
-- Attendance page (admin): Edit dialog for login_time / logout_time / notes; save recomputes late flag via trigger.
-
-## 5. Frontend — Notifications bell
-
-- Add a bell in the header (admin only) showing unread count from `notifications` table, dropdown lists latest 10, click marks read + navigates to `link`.
-- Realtime subscription on `notifications` filtered by `recipient_id = admin.id`.
+## Not touching
+- Branch/Department filters — you don't have those fields yet. I'll skip them unless you want me to add the schema.
+- PDF export — Excel covers the requested formats; PDF can come in a later pass if needed.
 
 ## Technical notes
+- Excel export via `xlsx` package (small, browser-side).
+- All new queries go through the existing `supabase` browser client — RLS already scoped.
+- Sticky footers use `sticky bottom-0 bg-background border-t` inside the scrollable dialog.
 
-- Existing `frequency` enum stays untouched.
-- Carry-over is purely a query-side concept — no row duplication, no cron needed for that part. The morning digest just *notifies*, it doesn't create tasks.
-- All new mutations reuse existing RLS (`is_admin()` for admin-only writes on tasks/clients/employees/attendance).
-- No changes to auth/login UX in this phase.
-
-## Out of scope (next rollouts)
-
-- Late-login monthly report page.
-- Dashboard revamp (items 6, 12).
-- Attendance/task reports pages with filters (7, 8, 10).
-- Excel/PDF export (11).
-- Broader notification types (9) beyond the pending-task digest.
-
-Reply "go" to build this, or tell me what to change.
+Reply **"go"** to start Phase 1, or tell me what to change.

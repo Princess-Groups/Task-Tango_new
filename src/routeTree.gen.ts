@@ -9,26 +9,27 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
+import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedIndexRouteImport } from './routes/_authenticated.index'
-import { Route as AuthenticatedTasksRouteImport } from './routes/_authenticated.tasks'
-import { Route as AuthenticatedPaymentsRouteImport } from './routes/_authenticated.payments'
-import { Route as AuthenticatedMyTasksRouteImport } from './routes/_authenticated.my-tasks'
-import { Route as AuthenticatedMyTargetsRouteImport } from './routes/_authenticated.my-targets'
-import { Route as AuthenticatedMyAttendanceRouteImport } from './routes/_authenticated.my-attendance'
-import { Route as AuthenticatedEmployeesRouteImport } from './routes/_authenticated.employees'
-import { Route as AuthenticatedClientsRouteImport } from './routes/_authenticated.clients'
 import { Route as AuthenticatedAttendanceRouteImport } from './routes/_authenticated.attendance'
+import { Route as AuthenticatedClientsRouteImport } from './routes/_authenticated.clients'
+import { Route as AuthenticatedEmployeesRouteImport } from './routes/_authenticated.employees'
+import { Route as AuthenticatedMyAttendanceRouteImport } from './routes/_authenticated.my-attendance'
+import { Route as AuthenticatedMyTargetsRouteImport } from './routes/_authenticated.my-targets'
+import { Route as AuthenticatedMyTasksRouteImport } from './routes/_authenticated.my-tasks'
+import { Route as AuthenticatedPaymentsRouteImport } from './routes/_authenticated.payments'
+import { Route as AuthenticatedReportsRouteImport } from './routes/_authenticated.reports'
+import { Route as AuthenticatedTasksRouteImport } from './routes/_authenticated.tasks'
 import { Route as ApiPublicHooksPendingTaskDigestRouteImport } from './routes/api/public/hooks/pending-task-digest'
 
+const AuthenticatedRoute = AuthenticatedRouteImport.update({
+  id: '/_authenticated',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AuthRoute = AuthRouteImport.update({
   id: '/auth',
   path: '/auth',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AuthenticatedRoute = AuthenticatedRouteImport.update({
-  id: '/_authenticated',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthenticatedIndexRoute = AuthenticatedIndexRouteImport.update({
@@ -36,24 +37,19 @@ const AuthenticatedIndexRoute = AuthenticatedIndexRouteImport.update({
   path: '/',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
-const AuthenticatedTasksRoute = AuthenticatedTasksRouteImport.update({
-  id: '/tasks',
-  path: '/tasks',
+const AuthenticatedAttendanceRoute = AuthenticatedAttendanceRouteImport.update({
+  id: '/attendance',
+  path: '/attendance',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
-const AuthenticatedPaymentsRoute = AuthenticatedPaymentsRouteImport.update({
-  id: '/payments',
-  path: '/payments',
+const AuthenticatedClientsRoute = AuthenticatedClientsRouteImport.update({
+  id: '/clients',
+  path: '/clients',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
-const AuthenticatedMyTasksRoute = AuthenticatedMyTasksRouteImport.update({
-  id: '/my-tasks',
-  path: '/my-tasks',
-  getParentRoute: () => AuthenticatedRoute,
-} as any)
-const AuthenticatedMyTargetsRoute = AuthenticatedMyTargetsRouteImport.update({
-  id: '/my-targets',
-  path: '/my-targets',
+const AuthenticatedEmployeesRoute = AuthenticatedEmployeesRouteImport.update({
+  id: '/employees',
+  path: '/employees',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
 const AuthenticatedMyAttendanceRoute =
@@ -62,19 +58,29 @@ const AuthenticatedMyAttendanceRoute =
     path: '/my-attendance',
     getParentRoute: () => AuthenticatedRoute,
   } as any)
-const AuthenticatedEmployeesRoute = AuthenticatedEmployeesRouteImport.update({
-  id: '/employees',
-  path: '/employees',
+const AuthenticatedMyTargetsRoute = AuthenticatedMyTargetsRouteImport.update({
+  id: '/my-targets',
+  path: '/my-targets',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
-const AuthenticatedClientsRoute = AuthenticatedClientsRouteImport.update({
-  id: '/clients',
-  path: '/clients',
+const AuthenticatedMyTasksRoute = AuthenticatedMyTasksRouteImport.update({
+  id: '/my-tasks',
+  path: '/my-tasks',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
-const AuthenticatedAttendanceRoute = AuthenticatedAttendanceRouteImport.update({
-  id: '/attendance',
-  path: '/attendance',
+const AuthenticatedPaymentsRoute = AuthenticatedPaymentsRouteImport.update({
+  id: '/payments',
+  path: '/payments',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
+const AuthenticatedReportsRoute = AuthenticatedReportsRouteImport.update({
+  id: '/reports',
+  path: '/reports',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
+const AuthenticatedTasksRoute = AuthenticatedTasksRouteImport.update({
+  id: '/tasks',
+  path: '/tasks',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
 const ApiPublicHooksPendingTaskDigestRoute =
@@ -94,6 +100,7 @@ export interface FileRoutesByFullPath {
   '/my-targets': typeof AuthenticatedMyTargetsRoute
   '/my-tasks': typeof AuthenticatedMyTasksRoute
   '/payments': typeof AuthenticatedPaymentsRoute
+  '/reports': typeof AuthenticatedReportsRoute
   '/tasks': typeof AuthenticatedTasksRoute
   '/api/public/hooks/pending-task-digest': typeof ApiPublicHooksPendingTaskDigestRoute
 }
@@ -106,6 +113,7 @@ export interface FileRoutesByTo {
   '/my-targets': typeof AuthenticatedMyTargetsRoute
   '/my-tasks': typeof AuthenticatedMyTasksRoute
   '/payments': typeof AuthenticatedPaymentsRoute
+  '/reports': typeof AuthenticatedReportsRoute
   '/tasks': typeof AuthenticatedTasksRoute
   '/': typeof AuthenticatedIndexRoute
   '/api/public/hooks/pending-task-digest': typeof ApiPublicHooksPendingTaskDigestRoute
@@ -121,6 +129,7 @@ export interface FileRoutesById {
   '/_authenticated/my-targets': typeof AuthenticatedMyTargetsRoute
   '/_authenticated/my-tasks': typeof AuthenticatedMyTasksRoute
   '/_authenticated/payments': typeof AuthenticatedPaymentsRoute
+  '/_authenticated/reports': typeof AuthenticatedReportsRoute
   '/_authenticated/tasks': typeof AuthenticatedTasksRoute
   '/_authenticated/': typeof AuthenticatedIndexRoute
   '/api/public/hooks/pending-task-digest': typeof ApiPublicHooksPendingTaskDigestRoute
@@ -137,6 +146,7 @@ export interface FileRouteTypes {
     | '/my-targets'
     | '/my-tasks'
     | '/payments'
+    | '/reports'
     | '/tasks'
     | '/api/public/hooks/pending-task-digest'
   fileRoutesByTo: FileRoutesByTo
@@ -149,6 +159,7 @@ export interface FileRouteTypes {
     | '/my-targets'
     | '/my-tasks'
     | '/payments'
+    | '/reports'
     | '/tasks'
     | '/'
     | '/api/public/hooks/pending-task-digest'
@@ -163,6 +174,7 @@ export interface FileRouteTypes {
     | '/_authenticated/my-targets'
     | '/_authenticated/my-tasks'
     | '/_authenticated/payments'
+    | '/_authenticated/reports'
     | '/_authenticated/tasks'
     | '/_authenticated/'
     | '/api/public/hooks/pending-task-digest'
@@ -176,18 +188,18 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/auth': {
-      id: '/auth'
-      path: '/auth'
-      fullPath: '/auth'
-      preLoaderRoute: typeof AuthRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/_authenticated': {
       id: '/_authenticated'
       path: ''
       fullPath: '/'
       preLoaderRoute: typeof AuthenticatedRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/auth': {
+      id: '/auth'
+      path: '/auth'
+      fullPath: '/auth'
+      preLoaderRoute: typeof AuthRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_authenticated/': {
@@ -197,46 +209,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedIndexRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
-    '/_authenticated/tasks': {
-      id: '/_authenticated/tasks'
-      path: '/tasks'
-      fullPath: '/tasks'
-      preLoaderRoute: typeof AuthenticatedTasksRouteImport
-      parentRoute: typeof AuthenticatedRoute
-    }
-    '/_authenticated/payments': {
-      id: '/_authenticated/payments'
-      path: '/payments'
-      fullPath: '/payments'
-      preLoaderRoute: typeof AuthenticatedPaymentsRouteImport
-      parentRoute: typeof AuthenticatedRoute
-    }
-    '/_authenticated/my-tasks': {
-      id: '/_authenticated/my-tasks'
-      path: '/my-tasks'
-      fullPath: '/my-tasks'
-      preLoaderRoute: typeof AuthenticatedMyTasksRouteImport
-      parentRoute: typeof AuthenticatedRoute
-    }
-    '/_authenticated/my-targets': {
-      id: '/_authenticated/my-targets'
-      path: '/my-targets'
-      fullPath: '/my-targets'
-      preLoaderRoute: typeof AuthenticatedMyTargetsRouteImport
-      parentRoute: typeof AuthenticatedRoute
-    }
-    '/_authenticated/my-attendance': {
-      id: '/_authenticated/my-attendance'
-      path: '/my-attendance'
-      fullPath: '/my-attendance'
-      preLoaderRoute: typeof AuthenticatedMyAttendanceRouteImport
-      parentRoute: typeof AuthenticatedRoute
-    }
-    '/_authenticated/employees': {
-      id: '/_authenticated/employees'
-      path: '/employees'
-      fullPath: '/employees'
-      preLoaderRoute: typeof AuthenticatedEmployeesRouteImport
+    '/_authenticated/attendance': {
+      id: '/_authenticated/attendance'
+      path: '/attendance'
+      fullPath: '/attendance'
+      preLoaderRoute: typeof AuthenticatedAttendanceRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
     '/_authenticated/clients': {
@@ -246,11 +223,53 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedClientsRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
-    '/_authenticated/attendance': {
-      id: '/_authenticated/attendance'
-      path: '/attendance'
-      fullPath: '/attendance'
-      preLoaderRoute: typeof AuthenticatedAttendanceRouteImport
+    '/_authenticated/employees': {
+      id: '/_authenticated/employees'
+      path: '/employees'
+      fullPath: '/employees'
+      preLoaderRoute: typeof AuthenticatedEmployeesRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/my-attendance': {
+      id: '/_authenticated/my-attendance'
+      path: '/my-attendance'
+      fullPath: '/my-attendance'
+      preLoaderRoute: typeof AuthenticatedMyAttendanceRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/my-targets': {
+      id: '/_authenticated/my-targets'
+      path: '/my-targets'
+      fullPath: '/my-targets'
+      preLoaderRoute: typeof AuthenticatedMyTargetsRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/my-tasks': {
+      id: '/_authenticated/my-tasks'
+      path: '/my-tasks'
+      fullPath: '/my-tasks'
+      preLoaderRoute: typeof AuthenticatedMyTasksRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/payments': {
+      id: '/_authenticated/payments'
+      path: '/payments'
+      fullPath: '/payments'
+      preLoaderRoute: typeof AuthenticatedPaymentsRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/reports': {
+      id: '/_authenticated/reports'
+      path: '/reports'
+      fullPath: '/reports'
+      preLoaderRoute: typeof AuthenticatedReportsRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/tasks': {
+      id: '/_authenticated/tasks'
+      path: '/tasks'
+      fullPath: '/tasks'
+      preLoaderRoute: typeof AuthenticatedTasksRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
     '/api/public/hooks/pending-task-digest': {
@@ -271,6 +290,7 @@ interface AuthenticatedRouteChildren {
   AuthenticatedMyTargetsRoute: typeof AuthenticatedMyTargetsRoute
   AuthenticatedMyTasksRoute: typeof AuthenticatedMyTasksRoute
   AuthenticatedPaymentsRoute: typeof AuthenticatedPaymentsRoute
+  AuthenticatedReportsRoute: typeof AuthenticatedReportsRoute
   AuthenticatedTasksRoute: typeof AuthenticatedTasksRoute
   AuthenticatedIndexRoute: typeof AuthenticatedIndexRoute
 }
@@ -283,6 +303,7 @@ const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedMyTargetsRoute: AuthenticatedMyTargetsRoute,
   AuthenticatedMyTasksRoute: AuthenticatedMyTasksRoute,
   AuthenticatedPaymentsRoute: AuthenticatedPaymentsRoute,
+  AuthenticatedReportsRoute: AuthenticatedReportsRoute,
   AuthenticatedTasksRoute: AuthenticatedTasksRoute,
   AuthenticatedIndexRoute: AuthenticatedIndexRoute,
 }

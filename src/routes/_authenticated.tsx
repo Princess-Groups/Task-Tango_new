@@ -1,6 +1,6 @@
 import { createFileRoute, Navigate, Outlet, useNavigate, useRouterState, Link } from "@tanstack/react-router";
 import { useAuth } from "@/lib/auth";
-import { Loader2, LayoutDashboard, Users, Briefcase, ListChecks, Clock, Wallet, LogOut, Sparkles, CalendarCheck, Target } from "lucide-react";
+import { Loader2, LayoutDashboard, Users, Briefcase, ListChecks, Clock, Wallet, LogOut, Sparkles, CalendarCheck, Target, BarChart3 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -32,6 +32,7 @@ function AuthLayout() {
     { to: "/tasks", label: "Tasks", icon: ListChecks },
     { to: "/attendance", label: "Attendance", icon: Clock },
     { to: "/payments", label: "Payments", icon: Wallet },
+    { to: "/reports", label: "Reports", icon: BarChart3 },
   ];
   const empNav = [
     { to: "/", label: "My Day", icon: LayoutDashboard, exact: true },

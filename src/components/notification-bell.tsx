@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
@@ -29,31 +29,17 @@ export function NotificationBell() {
     },
   });
 
-  const channelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
-
   useEffect(() => {
     if (!user || !isAdmin) return;
-
-    // Clean up any stale channel from StrictMode double-mount
-    if (channelRef.current) {
-      supabase.removeChannel(channelRef.current);
-      channelRef.current = null;
-    }
-
     const ch = supabase
-      .channel("notifications:" + user.id + ":" + crypto.randomUUID())
+      .channel("notifications:" + user.id)
       .on(
         "postgres_changes",
         { event: "*", schema: "public", table: "notifications", filter: `recipient_id=eq.${user.id}` },
         () => qc.invalidateQueries({ queryKey: ["notifications", user.id] }),
       )
       .subscribe();
-    channelRef.current = ch;
-
-    return () => {
-      supabase.removeChannel(ch);
-      if (channelRef.current === ch) channelRef.current = null;
-    };
+    return () => { supabase.removeChannel(ch); };
   }, [user, isAdmin, qc]);
 
   if (!isAdmin) return null;
